@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Product Health — Flamingueo</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F2F2F7;--card:#FFFFFF;--border:rgba(0,0,0,0.08);
+  --shadow:0 1px 4px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.06);
+  --shadow-h:0 4px 8px rgba(0,0,0,0.06),0 12px 32px rgba(0,0,0,0.1);
+  --blue:#007AFF;--green:#34C759;--orange:#FF9500;--red:#FF3B30;
+  --purple:#5856D6;--pink:#FF2D55;
+  --gray:#8E8E93;--t1:#1C1C1E;--t2:#636366;--t3:#AEAEB2;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+body{background:var(--bg);color:var(--t1);min-height:100vh;padding-bottom:100px}
+
+/* HEADER */
+.hdr{
+  position:relative;z-index:100;
+  background:var(--bg);
+  border-bottom:0.5px solid rgba(0,0,0,0.1);
+  padding:14px 16px 10px;
+}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.brand{
+  font-size:22px;font-weight:800;letter-spacing:-.5px;
+  background:linear-gradient(135deg,#FF5A5F 0%,#FF9500 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hdr-badge{
+  font-size:12px;font-weight:600;color:var(--t3);
+  background:rgba(118,118,128,0.12);padding:4px 10px;border-radius:20px;
+}
+.search{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(118,118,128,0.12);border-radius:12px;
+  padding:8px 12px;margin-bottom:10px;
+}
+.search svg{flex-shrink:0;opacity:.5}
+.search input{
+  flex:1;border:none;background:transparent;
+  font-size:15px;color:var(--t1);outline:none;
+}
+.search input::placeholder{color:var(--gray)}
+.filter-block{margin-bottom:8px}
+.filter-label{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.pills{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.pills::-webkit-scrollbar{display:none}
+.cat-select{
+  width:100%;padding:10px 12px;border-radius:12px;
+  font-size:14px;font-weight:600;color:var(--t1);
+  background:rgba(118,118,128,0.12);border:none;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  cursor:pointer;outline:none;
+}
+.pill{
+  flex-shrink:0;padding:7px 14px;border-radius:20px;
+  font-size:13px;font-weight:600;cursor:pointer;border:none;
+  background:rgba(118,118,128,0.12);color:var(--t2);
+  transition:all .2s ease;white-space:nowrap;letter-spacing:-.1px;
+}
+.pill.active{background:var(--blue);color:#fff;transform:scale(1.02)}
+.pill.p-mantener.active{background:var(--green)}
+.pill.p-ajustar.active{background:var(--orange)}
+.pill.p-liquidar.active{background:var(--red)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding:14px 12px 0}
+.sc{
+  background:var(--card);border-radius:14px;padding:12px 8px;
+  text-align:center;border:0.5px solid var(--border);
+  box-shadow:var(--shadow);
+}
+.sv{font-size:20px;font-weight:800;letter-spacing:-.6px}
+.sl{font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;
+  letter-spacing:.06em;margin-top:2px}
+
+/* CATEGORY */
+.cat-sec{margin-top:18px}
+.cat-hdr{
+  display:flex;align-items:center;gap:8px;
+  padding:0 16px 10px;
+  cursor:pointer;user-select:none;width:fit-content;
+  border-radius:10px;
+  transition:background .15s ease;
+}
+.cat-hdr:hover{background:rgba(0,0,0,0.04)}
+.cat-hdr.active-cat .cat-title{color:var(--blue)}
+.cat-hdr.active-cat .cat-badge{background:rgba(0,122,255,0.12);color:var(--blue)}
+.cat-title{font-size:12px;font-weight:700;color:var(--t2);
+  letter-spacing:.08em;text-transform:uppercase;transition:color .15s}
+.cat-badge{
+  font-size:11px;font-weight:700;color:var(--t3);
+  background:rgba(118,118,128,0.1);padding:2px 8px;border-radius:8px;
+  transition:all .15s;
+}
+
+
+/* LIST VIEW — tabla con columnas alineadas */
+/* grid: foto | sku | desc | llegada | estrategia | stock | uv */
+.list-thead{
+  position:sticky;top:0;z-index:20;
+  background:rgba(242,242,247,0.97);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  border-top:0.5px solid var(--border);
+}
+.list-thead-row,.list-row{
+  display:grid;
+  grid-template-columns:50px 68px minmax(130px,1fr) 82px 114px 62px 66px 78px 84px;
+  min-width:780px;
+  align-items:center;
+  padding:0 12px;
+}
+.list-th{
+  padding:7px 6px;
+  font-size:10px;font-weight:700;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.06em;
+  cursor:pointer;user-select:none;
+  display:flex;align-items:center;gap:3px;
+  transition:color .15s;border-radius:6px;
+  white-space:nowrap;
+}
+.list-th:hover{color:var(--t1);background:rgba(0,0,0,0.04)}
+.list-th.sorted{color:var(--blue)}
+.list-th:first-child{cursor:default}
+.list-th:first-child:hover{background:none}
+.sort-arrow{font-size:9px;opacity:.7}
+.list-th{position:relative}
+.col-dropdown{
+  position:absolute;top:100%;left:0;z-index:50;
+  background:#fff;border-radius:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.15);
+  border:0.5px solid var(--border);
+  min-width:160px;padding:4px 0;
+  animation:pop .15s ease both;
+}
+.col-dropdown-item{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 14px;font-size:13px;font-weight:600;
+  color:var(--t1);cursor:pointer;transition:background .12s;
+  white-space:nowrap;text-transform:none;letter-spacing:normal;
+}
+.col-dropdown-item:hover{background:rgba(0,122,255,0.06)}
+.col-dropdown-item.active{color:var(--blue);font-weight:700}
+.col-dropdown-item .dd-icon{font-size:14px;width:18px;text-align:center}
+.list-row{
+  cursor:pointer;
+  border-bottom:0.5px solid var(--border);
+  transition:background .15s ease;
+  animation:pop .2s ease both;
+  min-height:54px;
+}
+.list-row:hover{background:rgba(0,122,255,0.03)}
+.list-row:active{background:rgba(0,122,255,0.07)}
+.list-cell{padding:5px 6px;min-width:0;overflow:hidden}
+.list-thumb{
+  width:42px;height:42px;border-radius:10px;
+  object-fit:cover;display:block;background:#F0F0F5;
+}
+.list-thumb-ph{
+  width:42px;height:42px;border-radius:10px;
+  background:#F0F0F5;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.list-sku{
+  font-size:10px;font-weight:700;color:var(--blue);
+  background:rgba(0,122,255,0.1);padding:2px 6px;
+  border-radius:6px;white-space:nowrap;display:inline-block;
+}
+.list-name{
+  font-size:12px;font-weight:600;color:var(--t1);
+  line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.list-stock-cell{display:flex;align-items:center;gap:5px}
+.list-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.list-stock-num{font-size:12px;font-weight:700}
+.list-uv-val{font-size:12px;font-weight:600;color:var(--t2)}
+.list-date-val{font-size:11px;color:var(--t3);white-space:nowrap}
+.list-cat-hdr{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px 4px;
+  background:rgba(242,242,247,0.95);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+/* action badge compact */
+.ab-sm{font-size:9px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap;display:inline-block}
+
+/* ACTION BADGE */
+.action-badge{
+  font-size:9px;font-weight:700;padding:3px 7px;border-radius:8px;
+  letter-spacing:.02em;flex-shrink:0;
+}
+.ab-mantener{background:rgba(52,199,89,0.15);color:#1a7f3a}
+.ab-ajustar{background:rgba(255,149,0,0.15);color:#b85c00}
+.ab-liquidar{background:rgba(255,59,48,0.15);color:#c0100a}
+.ab-none{background:rgba(142,142,147,0.12);color:#8E8E93}
+
+/* MODAL */
+.overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  align-items:flex-end;justify-content:center;
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--bg);border-radius:28px 28px 0 0;
+  width:100%;max-width:600px;max-height:92vh;
+  overflow-y:auto;padding:0 0 40px;
+  animation:slideUp .35s cubic-bezier(.32,0,.67,0) both;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.m-drag{
+  width:36px;height:4px;border-radius:2px;
+  background:rgba(0,0,0,0.15);margin:12px auto 8px;
+}
+.m-img{
+  width:100%;aspect-ratio:1.6;background:#F0F0F5;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.m-img-no{font-size:64px}
+.m-content{padding:20px 20px 0}
+.m-sku{
+  font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.08em;
+  background:rgba(0,122,255,0.1);padding:4px 10px;
+  border-radius:8px;margin-bottom:8px;display:inline-block;
+}
+.m-title{font-size:21px;font-weight:800;letter-spacing:-.4px;
+  line-height:1.2;margin-bottom:12px}
+.m-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:10px}
+/* LLEGADA SECTION */
+.m-potencial{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(0,122,255,0.08) 0%,rgba(88,86,214,0.07) 100%);
+  border:0.5px solid rgba(0,122,255,0.15);
+  margin-bottom:16px;
+}
+.m-pot-icon{font-size:22px}
+.m-pot-label{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.m-pot-val{font-size:20px;font-weight:800;letter-spacing:-.5px;color:#007AFF}
+.m-pot-detail{font-size:11px;color:var(--t3);margin-top:1px}
+.m-llegada{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border-radius:12px;
+  background:rgba(118,118,128,0.08);
+  margin-bottom:16px;
+}
+.m-llegada-icon{font-size:16px}
+.m-llegada-label{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.m-llegada-val{font-size:14px;font-weight:700;color:var(--t1)}
+/* ACTION SUMMARY in modal */
+.m-action{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:14px;
+  margin-bottom:16px;
+}
+.m-action-icon{font-size:22px}
+.m-action-label{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.m-action-val{font-size:16px;font-weight:800}
+.rev-lbl{
+  font-size:11px;font-weight:700;color:var(--t3);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;
+}
+.rev-card{
+  background:#fff;border-radius:14px;padding:14px;
+  margin-bottom:10px;border:0.5px solid var(--border);
+}
+.rev-hd{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rev-av{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#fff;font-size:14px;
+}
+.rev-name{font-size:14px;font-weight:700}
+.rev-role{font-size:11px;color:var(--t3)}
+.rev-cat{
+  display:inline-block;font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:6px;margin-top:2px;
+}
+.rev-comment{font-size:13px;color:var(--t2);line-height:1.5}
+.no-comment{font-size:13px;color:var(--t3);font-style:italic}
+/* DECISION PANEL in modal */
+.m-decision{margin-bottom:16px}
+.dec-btns{display:flex;gap:8px}
+.dec-btn{
+  flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid rgba(0,0,0,0.1);
+  background:rgba(255,255,255,0.7);backdrop-filter:blur(8px);
+  font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;
+  font-family:inherit;color:var(--t2);
+}
+.dec-btn:active{transform:scale(.97)}
+.dec-active-mantener{background:rgba(52,199,89,0.2)!important;border-color:#34C759!important;color:#1a7a3c!important}
+.dec-active-ajustar{background:rgba(255,149,0,0.2)!important;border-color:#FF9500!important;color:#a35500!important}
+.dec-active-liquidar{background:rgba(255,59,48,0.2)!important;border-color:#FF3B30!important;color:#c0180f!important}
+/* CONFIRMED badges – solid fill */
+.ab-confirmed-mantener{background:#34C759;color:#fff}
+.ab-confirmed-ajustar{background:#FF9500;color:#fff}
+.ab-confirmed-liquidar{background:#FF3B30;color:#fff}
+/* ZERO STOCK TOGGLE */
+.zero-toggle{
+  padding:6px 14px;border-radius:20px;border:1.5px solid rgba(0,0,0,0.12);
+  background:rgba(255,255,255,0.6);backdrop-filter:blur(8px);
+  font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+  align-self:center;transition:all .15s;margin-left:auto;white-space:nowrap;
+}
+.zt-on{background:rgba(0,122,255,0.15)!important;border-color:#007AFF!important;color:#007AFF!important}
+
+/* TABBAR */
+.tabbar{
+  position:fixed;bottom:0;left:0;right:0;z-index:150;
+  display:flex;background:rgba(242,242,247,0.92);
+  backdrop-filter:blur(20px) saturate(200%);
+  -webkit-backdrop-filter:blur(20px) saturate(200%);
+  border-top:0.5px solid rgba(0,0,0,0.1);
+  padding:8px 0 20px;
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;gap:3px;background:none;border:none;cursor:pointer;
+  padding:4px 0;
+}
+.tab-ic{font-size:22px}
+.tab-lb{font-size:10px;font-weight:600;color:var(--t3)}
+.tab.active .tab-lb{color:var(--blue)}
+.tab.active .tab-ic{filter:drop-shadow(0 0 4px rgba(0,122,255,.4))}
+
+/* PRICING in modal */
+.m-pricing{margin-bottom:16px}
+.pricing-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.price-card{
+  background:#fff;border-radius:12px;padding:12px 10px;
+  text-align:center;border:0.5px solid var(--border);
+}
+.price-label{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.price-val{font-size:18px;font-weight:800;letter-spacing:-.3px}
+
+/* CHANNELS in modal */
+.m-channels{margin-bottom:16px}
+.channel-chart-wrap{
+  display:flex;align-items:center;gap:16px;
+  background:#fff;border-radius:14px;padding:16px;
+  border:0.5px solid var(--border);
+}
+.channel-legend{display:flex;flex-direction:column;gap:6px;flex:1}
+.ch-leg-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--t2)}
+.ch-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ch-leg-pct{margin-left:auto;font-weight:700;color:var(--t1)}
+
+/* POTENTIAL CARD */
+.pot-card{
+  margin:14px 12px 0;
+  background:linear-gradient(135deg,rgba(0,122,255,0.08) 0%,rgba(88,86,214,0.06) 100%);
+  border:0.5px solid rgba(0,122,255,0.18);
+  border-radius:18px;padding:16px 20px;
+}
+.pot-lbl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.pot-main{font-size:30px;font-weight:800;letter-spacing:-.8px;color:var(--t1)}
+.pot-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.pot-breakdown{display:flex;gap:8px;margin-top:12px}
+.pot-item{flex:1;background:rgba(255,255,255,0.75);border-radius:12px;padding:10px 10px 8px;backdrop-filter:blur(4px)}
+.pot-item-val{font-size:14px;font-weight:800;letter-spacing:-.4px}
+.pot-item-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-top:2px}
+/* Card price */
+
+/* Loading */
+#content{overflow-x:auto}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px}
+.spinner{width:32px;height:32px;border:3px solid rgba(0,0,0,0.1);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:14px;color:var(--t3);font-weight:600}
+
+/* Year-specific grid templates */
+.list-2025 .list-thead-row, .list-2025 .list-row{
+  grid-template-columns:50px 68px minmax(130px,1fr) 82px 114px 62px 66px 78px 84px;
+  min-width:780px;
+}
+.list-2026 .list-thead-row, .list-2026 .list-row{
+  grid-template-columns:50px 68px minmax(120px,1fr) 70px 80px 72px 88px;
+  min-width:560px;
+}
+.list-all .list-thead-row, .list-all .list-row{
+  grid-template-columns:50px 68px minmax(120px,1fr) 100px 70px 80px 50px;
+  min-width:540px;
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-top">
+    <div class="brand">🦩 Product Health</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="hdr-badge" id="hdr-count">236 productos</div>
+    </div>
+  </div>
+  <div class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="q" type="text" placeholder="Buscar producto o SKU…" oninput="render()"/>
+  </div>
+  <div class="filter-block" id="strategy-filters">
+    <div class="filter-label">Vista · Estrategia</div>
+    <div class="pills">
+      <button class="pill active" data-f="all" onclick="applyFilter(this)">Todos</button>
+      <button class="pill p-mantener" data-f="act:mantener" onclick="applyFilter(this)">🟢 Mantener</button>
+      <button class="pill p-ajustar" data-f="act:ajustar" onclick="applyFilter(this)">🟡 Ajustar precio</button>
+      <button class="pill p-liquidar" data-f="act:liquidar" onclick="applyFilter(this)">🔴 Liquidar</button>
+    </div>
+  </div>
+  <div class="filter-block" style="margin-bottom:0">
+    <div class="filter-label">Categoría</div>
+    <select id="cat-select" class="cat-select" onchange="applyCatFilter(this.value)">
+      <option value="">Todas las categorías</option>
+      <option value="cat:Bolsos">👜 Bolsos</option>
+      <option value="cat:Carro">🛒 Carro</option>
+      <option value="cat:Castillos kids">🏰 Castillos</option>
+      <option value="cat:Chalecos">🦺 Chalecos</option>
+      <option value="cat:Flotadores">🏊 Flotadores</option>
+      <option value="cat:Hamacas">🪑 Hamacas</option>
+      <option value="cat:Respaldos">🎒 Respaldos</option>
+      <option value="cat:Sombrillas">⛱️ Sombrillas</option>
+      <option value="cat:Tent/Cabanas">⛺ Tent/Cabanas</option>
+      <option value="cat:Toallas/Bolsos">🛍️ Toallas</option>
+    </select>
+  </div>
+</header>
+
+<div id="potential-card"></div>
+<div id="stats-row" class="stats"></div>
+<div id="content"></div>
+
+<div class="overlay" id="overlay" onclick="maybeClose(event)">
+  <div class="modal" id="modal">
+    <div class="m-drag"></div>
+    <div class="m-img" id="m-img"></div>
+    <div class="m-content" id="m-body"></div>
+  </div>
+</div>
+
+<nav class="tabbar">
+  <button class="tab active" id="tab-all" onclick="tabYearClick('all',this)">
+    <span class="tab-ic">🏠</span><span class="tab-lb">Todos</span>
+  </button>
+  <button class="tab" id="tab-2026" onclick="tabYearClick('2026',this)">
+    <span class="tab-ic">🚀</span><span class="tab-lb">2026</span>
+  </button>
+  <button class="tab" id="tab-2025" onclick="tabYearClick('2025',this)">
+    <span class="tab-ic">📊</span><span class="tab-lb">2025</span>
+  </button>
+</nav>
+
+<script>
+let P = [];
+
+const IMG = {"BC-2":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/carpa-playa-rosa-bondiflamingueo-4694748.webp?v=1771891208","BG-10":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-azul-penelopeflamingueo-2977360.webp?v=1760970975","BG-11":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-rosa-salmaflamingueo-2979601.webp?v=1760971051","BG-12":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-aguamarina-salmaflamingueo-3985638.webp?v=1760971132","BG-1":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-fucsia-gretaflamingueo-5794423.webp?v=1760970434","BG-15":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/bolsa-de-playa-tote-bagflamingueo-6270222.webp?v=1760975255","BG-2":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-azul-gretaflamingueo-2240570.webp?v=1760970493","BG-3":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-amarilla-demiflamingueo-3059835.webp?v=1760970541","BG-4":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-verde-demiflamingueo-1162953.webp?v=1760970607","BG-5":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-beige-brunyflamingueo-1074823.webp?v=1760970671","BG-6":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-burdeos-brunyflamingueo-9969930.webp?v=1760970745","BG-7":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-verde-brunyflamingueo-6388230.webp?v=1760970804","BG-9":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-amarilla-penelopeflamingueo-8706670.webp?v=1760970910","BT-11":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/BT-11_WEB-1.webp?v=1769674193","BT-12":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/BT-12_WEB-1.webp?v=1762214466","BT-5":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/beach-tent-azul-santa-cruzflamingueo-7038986.webp?v=1760972794","BT-6":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/pop-up-tent-verde-finnickflamingueo-3650002.webp?v=1760974079","CH-1":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/chaleco-flotador-kids-andyflamingueo-1589900.webp?v=1760971197","CH-2":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/chaleco-flotador-kids-skylarflamingueo-4557787.webp?v=1760971287","CH-3":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/chaleco-flotador-kids-lexflamingueo-7931621.webp?v=1760971361","CR-1":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/carrito-de-playa-azul-abelflamingueo-4073108.webp?v=1760973866","FL-100":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-redonda-amarilla-atlantaflamingueo-2067310.webp?v=1760973554","FL-101":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-redonda-azul-atlantaflamingueo-6919413.webp?v=1760973645","FL-104":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-rejilla-amarilla-maltaflamingueo-2833624.webp?v=1760973724","FL-105":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-rejilla-azul-maltaflamingueo-7463464.webp?v=1760973801","FL-106":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-estilo-silla-amarilla-galaflamingueo-2176876.webp?v=1760972195","FL-107":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-estilo-silla-azul-galaflamingueo-9535434.webp?v=1760972261","FL-108":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/mini-bar-hinchable-amarillo-tommyflamingueo-3100952.webp?v=1760975191","FL-109":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/mini-bar-hinchable-azul-tommyflamingueo-5513049.webp?v=1760975134","FL-110":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-rosa-purpurina-festaflamingueo-1551394.webp?v=1760966411","FL-111":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-festaflamingueo-3188279.webp?v=1760966488","FL-112":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-doble-rosa-ciaoflamingueo-7227583.webp?v=1760972888","FL-113":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-doble-aguamarina-ciaoflamingueo-6109185.webp?v=1760966629","FL-114":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tanning-pool-aguamarina-elsaflamingueo-6058439.webp?v=1760963671","FL-115":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tanning-pool-redonda-rosa-lunaflamingueo-8527371.webp?v=1760966835","FL-116":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tanning-pool-redonda-lunaflamingueo-8669614.webp?v=1760966758","FL-117":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-rivieraflamingueo-1258044.webp?v=1760966023","FL-118":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-aguamarina-rivieraflamingueo-4245955.webp?v=1760966111","FL-119":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-rosa-serenityflamingueo-7314261.webp?v=1760966251","FL-120":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-serenityflamingueo-2376211.webp?v=1760966343","FL-122":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-helado-aguamarina-mintyflamingueo-1056001.webp?v=1760966684","FL-123":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-banera-rubyflamingueo-9602901.webp?v=1760974932","FL-124":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hamaca-rosa-ithacaflamingueo-8690359.webp?v=1760964829","FL-125":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hamaca-azul-ithacaflamingueo-2061492.webp?v=1760964913","FL-126":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-rosa-milosflamingueo-3605302.webp?v=1760972417","FL-127":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-azul-milosflamingueo-4535344.webp?v=1760972483","FL-132":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-estilo-silla-rosa-cretaflamingueo-1427013.webp?v=1760974558","FL-133":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-estilo-silla-azul-cretaflamingueo-8437949.webp?v=1760974640","FL-136":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-redonda-beige-babylonflamingueo-8972104.webp?v=1760974707","FL-137":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-doble-beige-sunrayflamingueo-8115186.webp?v=1760974782","FL-138":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-beige-oliveflamingueo-9012375.webp?v=1760974859","FL-139":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-beige-leoflamingueo-7618462.webp?v=1760963750","FL-140":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-estrella-roja-vegaflamingueo-5159843.webp?v=1760972549","FL-141":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-estrella-plata-vegaflamingueo-8540459.webp?v=1760972622","FL-144":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-cohete-espacial-azul-aresflamingueo-2043087.webp?v=1760974181","FL-146":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-nave-espacial-azul-galacticflamingueo-7051234.webp?v=1760973993","FL-150":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-serpiente-roja-tritonflamingueo-7606693.webp?v=1760974420","FL-151":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-serpiente-multicolor-tritonflamingueo-2319770.webp?v=1760974495","FL-152":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-moto-de-agua-espacial-azul-rangerflamingueo-8523201.webp?v=1760974255","FL-153":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-aspersor-hectorflamingueo-7740529.webp?v=1760974330","FL-157":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-pelota-kids-balooflamingueo-5433710.webp?v=1760965853","FL-160":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-nave-espacial-verde-mogliflamingueo-7788400.webp?v=1760973919","FL-163":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/FL-163_WEB-1.webp?v=1770798356","FL-164":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/FL-164_WEB-1.webp?v=1762215284","FL-165":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/FL-165_WEB-1.webp?v=1770022951","FL-166":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/FL-166_WEB-1.webp?v=1762214657","FL-167":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/FL-167_WEB-1.webp?v=1762214706","FL-168":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/FL-168_WEB-1.webp?v=1762214764","FL-169":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/FL-169_WEB-1-2.webp?v=1762215141","FL-17":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-gigante-cassette-elvisflamingueo-3873161.webp?v=1761005295","FL-170":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/FL-170_WEB-1.webp?v=1762215208","FL-23":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hinchable-multiposicion-bariflamingueo-6692512.webp?v=1760956185","FL-24":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sillon-hinchable-2-en-1-marsalaflamingueo-8761324.webp?v=1760955556","FL-25":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/mini-bar-hinchable-siciliaflamingueo-3356664.webp?v=1760955767","FL-26":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hinchable-multiposicion-bariflamingueo-5584362.webp?v=1760956128","FL-27":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sillon-hinchable-2-en-1-marsalaflamingueo-5372910.webp?v=1760955631","FL-28":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/mini-bar-hinchable-siciliaflamingueo-8083885.webp?v=1760955718","FL-32":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-vichy-hamptonsflamingueo-2284567.webp?v=1760955321","FL-33":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-vichy-hamptonsflamingueo-8932241.webp?v=1760955385","FL-34":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-vichy-hamptonsflamingueo-4084304.webp?v=1760955442","FL-35":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-vichy-hamptonsflamingueo-9008309.webp?v=1760955496","FL-37":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tanning-pool-catalinaflamingueo-3613335.webp?v=1760956247","FL-40":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hamaca-para-piscina-bayflamingueo-8440794.webp?v=1760955814","FL-41":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hamaca-para-piscina-bayflamingueo-6741988.webp?v=1760955889","FL-42":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hamaca-para-piscina-bayflamingueo-4221993.webp?v=1760955970","FL-43":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hamaca-para-piscina-bayflamingueo-1355148.webp?v=1760956042","FL-44":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-fucsia-jacksonflamingueo-6483387.webp?v=1760963902","FL-45":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-azul-jacksonflamingueo-2536332.webp?v=1760963990","FL-46":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-herradura-rosa-yeehawflamingueo-9365071.webp?v=1760971862","FL-47":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-estrella-cowboy-naranja-texasflamingueo-5222936.webp?v=1760971937","FL-49":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-bota-cowboy-rosa-bandidaflamingueo-6338739.webp?v=1760972025","FL-50":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-amarillo-cinnamonflamingueo-7014998.webp?v=1760963106","FL-51":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-rosa-cinnamonflamingueo-6840908.webp?v=1760963177","FL-52":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-verde-cinnamonflamingueo-8980804.webp?v=1760963277","FL-53":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-azul-cinnamonflamingueo-9452264.webp?v=1760963376","FL-55":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hamaca-rosa-kalaflamingueo-8736598.webp?v=1760964590","FL-56":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hamaca-verde-kalaflamingueo-1425099.webp?v=1760964674","FL-58":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-amarilla-palermoflamingueo-9770498.webp?v=1760965126","FL-59":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-rosa-palermoflamingueo-1447648.webp?v=1760965182","FL-60":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-verde-palermoflamingueo-9681799.webp?v=1760965239","FL-61":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-azul-palermoflamingueo-3240303.webp?v=1760965298","FL-62":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tanning-pool-amarilla-portofinoflamingueo-9350275.webp?v=1760963417","FL-63":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tanning-pool-rosa-portofinoflamingueo-8950146.webp?v=1760963489","FL-64":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tanning-pool-verde-portofinoflamingueo-2345524.webp?v=1760963548","FL-65":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tanning-pool-azul-portofinoflamingueo-1091671.webp?v=1760963598","FL-66":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-pelota-xl-azul-mentaflamingueo-1064857.webp?v=1760965513","FL-67":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-pelota-amarilla-rivaflamingueo-2376446.webp?v=1760965581","FL-68":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-pelota-verde-rivaflamingueo-2927392.webp?v=1760965628","FL-69":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tabla-surf-amarilla-sanremoflamingueo-6473033.webp?v=1760965684","FL-70":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tabla-surf-azul-sanremoflamingueo-6732673.webp?v=1760965769","FL-75":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-verde-spiritflamingueo-7675858.webp?v=1760963830","FL-76":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-flor-morada-bonnieflamingueo-9364812.webp?v=1760964069","FL-77":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-flor-verde-bonnieflamingueo-6109610.webp?v=1760972108","FL-78":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-morada-arloflamingueo-5455117.webp?v=1760965353","FL-79":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-verde-arloflamingueo-5489320.webp?v=1760965435","FL-80":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-rosa-harmonyflamingueo-1077442.webp?v=1760965939","FL-81":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-verde-energyflamingueo-2551067.webp?v=1760966172","FL-82":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-morada-auroraflamingueo-2324672.webp?v=1760972980","FL-83":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tabla-surf-verde-austinflamingueo-4425835.webp?v=1760966923","FL-84":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-coche-caravana-san-franciscoflamingueo-2500177.webp?v=1760973122","FL-85":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-beige-alabamaflamingueo-1099791.webp?v=1760972680","FL-86":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-granate-alabamaflamingueo-9946163.webp?v=1760964185","FL-87":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-verde-alabamaflamingueo-7946479.webp?v=1760964255","FL-88":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-azul-alabamaflamingueo-2995273.webp?v=1760964394","FL-89":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-xl-beige-victoriaflamingueo-6170099.webp?v=1760964320","FL-90":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-xl-azul-victoriaflamingueo-1240906.webp?v=1760964460","FL-92":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-doble-amarillo-lisbonflamingueo-4640816.webp?v=1760966556","FL-93":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-donut-doble-azul-lisbonflamingueo-9135363.webp?v=1760971753","FL-94":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hamaca-amarillo-harborflamingueo-3308346.webp?v=1760964983","FL-95":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-hamaca-azul-harborflamingueo-5461274.webp?v=1760965063","FL-96":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-amarilla-montecarloflamingueo-4026948.webp?v=1760973188","FL-97":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-azul-montecarloflamingueo-7467438.webp?v=1760973269","FL-98":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-doble-amarilla-monacoflamingueo-6114140.webp?v=1760973371","FL-99":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-tumbona-doble-azul-monacoflamingueo-4037323.webp?v=1760973448","HA-12":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-azul-morganflamingueo-7681700.webp?v=1760967414","HA-13":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/silla-plegable-playa-amarilla-odinflamingueo-6719136.webp?v=1760970239","HA-17":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-amarillo-blakeflamingueo-5432392.webp?v=1760967062","HA-18":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-rosa-blakeflamingueo-1672492.webp?v=1760967137","HA-19":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-verde-blakeflamingueo-2783930.webp?v=1760967210","HA-20":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-azul-blakeflamingueo-8291758.webp?v=1760967271","HA-23":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-rosa-indigoflamingueo-8265621.webp?v=1760966984","HA-24":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-verde-indigoflamingueo-9348745.webp?v=1760973057","HA-25":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/silla-pequena-playa-beige-edenflamingueo-1634260.webp?v=1760971458","HA-26":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/silla-pequena-playa-burdeos-edenflamingueo-1677810.webp?v=1761028400","HA-27":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/silla-pequena-playa-verde-edenflamingueo-7268860.webp?v=1760971596","HA-28":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/silla-pequena-playa-azul-edenflamingueo-2270610.webp?v=1760972740","HA-29":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/hamaca-plegable-playa-beige-mayflamingueo-6577131.webp?v=1760969570","HA-31":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/hamaca-plegable-playa-verde-mayflamingueo-3087712.webp?v=1760969726","HA-33":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/silla-plegable-playa-beige-barbaraflamingueo-5206511.webp?v=1760969885","HA-34":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/silla-plegable-playa-burdeos-barbaraflamingueo-7241517.webp?v=1760969978","HA-35":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/silla-plegable-playa-verde-barbaraflamingueo-3058357.webp?v=1760970068","HA-36":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/silla-plegable-playa-azul-barbaraflamingueo-7507798.webp?v=1760970168","HA-37":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-beige-nelsonflamingueo-6574044.webp?v=1760967492","HA-38":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-burdeos-nelsonflamingueo-7190748.webp?v=1761028246","HA-39":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-verde-nelsonflamingueo-7485864.webp?v=1761028261","HA-40":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-azul-nelsonflamingueo-6987991.webp?v=1761028325","HA-42":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/esterilla-plegable-playa-azul-marino-coneyflamingueo-2546887.webp?v=1760971694","HA-47":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-amarillo-walesflamingueo-4965105.webp?v=1760967912","HA-48":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-azul-walesflamingueo-9866505.webp?v=1760967989","HA-49":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/hamaca-plegable-playa-rosa-coralflamingueo-6634825.webp?v=1760969374","HA-50":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/hamaca-plegable-playa-aguamarina-coralflamingueo-1734660.webp?v=1760969470","HA-51":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-rosa-ginoflamingueo-1514411.webp?v=1760967756","HA-52":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-aguamarina-ginoflamingueo-1234368.webp?v=1760967826","HA-7":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-samoaflamingueo-8740535.webp?v=1760955187","HA-8":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/asiento-plegable-playa-samoaflamingueo-2996377.webp?v=1760955254","TO-10":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-toalla-arubaflamingueo-4682638.webp?v=1760956336","TO-11":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-toalla-arubaflamingueo-3349883.webp?v=1760956413","TO-12":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-toalla-arubaflamingueo-2918779.webp?v=1760956494","TO-13":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-toalla-arubaflamingueo-5725287.webp?v=1760956568","TO-24":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/toalla-playa-morada-aylaflamingueo-2635491.webp?v=1760968347","TO-25":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/toalla-playa-verde-aylaflamingueo-1907641.webp?v=1760968445","TO-36":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/toalla-para-hamacas-azul-lenaflamingueo-5640409.webp?v=1760969151","TO-39":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/toalla-playa-rosa-marinaflamingueo-3042171.webp?v=1760969238","TO-40":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/toalla-playa-aguamarina-marinaflamingueo-5001775.webp?v=1760969301","TO-44":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/toalla-playa-azul-kids-carinaflamingueo-7654687.webp?v=1760969037","TO-45":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/toalla-playa-verde-kids-alanflamingueo-3439230.webp?v=1760968936","TO-9":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/toallaamarilla.webp?v=1770854477","UM-1":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-playa-y-terraza-brisbaneflamingueo-6989155.webp?v=1760952336","UM-10":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-azul-cyndiflamingueo-9844934.webp?v=1760961967","UM-11":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-amarilla-caramelflamingueo-9715322.webp?v=1760961544","UM-12":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-rosa-caramelflamingueo-4245259.webp?v=1760961629","UM-13":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-verde-caramelflamingueo-8064731.webp?v=1760961717","UM-14":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-azul-caramelflamingueo-2909959.webp?v=1760961804","UM-15":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-morada-wanderflamingueo-8841231.webp?v=1760962022","UM-16":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-verde-wanderflamingueo-7144135.webp?v=1760962095","UM-17":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-beige-daniaflamingueo-2445593.webp?v=1760962172","UM-18":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-granate-daniaflamingueo-5170795.webp?v=1760962236","UM-19":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-verde-daniaflamingueo-9343492.webp?v=1760962303","UM-2":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-playa-y-terraza-brisbaneflamingueo-3499098.webp?v=1760952390","UM-20":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-azul-daniaflamingueo-5425562.webp?v=1760962363","UM-21":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-beige-marionflamingueo-8365009.webp?v=1760962438","UM-22":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-granate-marionflamingueo-7616358.webp?v=1760962502","UM-23":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-verde-marionflamingueo-2430667.webp?v=1760962556","UM-24":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-azul-marionflamingueo-5973008.webp?v=1760962628","UM-25":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-amarilla-keiraflamingueo-2539704.webp?v=1760962691","UM-26":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-azul-keiraflamingueo-5695359.webp?v=1760962761","UM-27":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-amarilla-doriaflamingueo-7792606.webp?v=1760962833","UM-28":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-azul-doriaflamingueo-7415946.webp?v=1760962912","UM-3":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-playa-y-terraza-brisbaneflamingueo-1811654.webp?v=1760952448","UM-30":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-aguamarina-biancaflamingueo-7628610.webp?v=1760963014","UM-4":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-playa-y-terraza-brisbaneflamingueo-6609053.webp?v=1760952508","UM-8":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-rayas-finas-capriflamingueo-9972823.webp?v=1760954961","UM-9":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/sombrilla-exterior-fucsia-cyndiflamingueo-5033272.webp?v=1760961890","FL-159":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/flotador-cocodrilo-verde-crocflamingueo-2609417.webp?v=1760965769","BG-49":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/bolsa-de-playa-gana-energiaflamingueo-6270223.webp?v=1760975255","BG-8":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/tote-bag-azul-brunyflamingueo-8723445.webp?v=1760970850","BT-2":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/carpa-playa-rosa-bondiflamingueo-4694748.webp?v=1771891208","BT-4":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/beach-tent-azul-bondi-flamingueo.webp?v=1771891208","FL-170":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/FL-170_WEB-1.webp?v=1762215208","RE-1":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/respaldo-playa-azul-flamingueo.webp?v=1760967300","RE-2":"https://cdn.shopify.com/s/files/1/0552/1919/1986/files/respaldo-playa-rosa-flamingueo.webp?v=1760967350"};
+
+// ── CSV parsing utilities ──────────────────────────────────────────────────
+function parseCSV(text) {
+  const rows = [];
+  let i = 0;
+  while (i < text.length) {
+    const row = [];
+    while (i < text.length) {
+      let val = '';
+      if (text[i] === '"') {
+        i++; // skip opening quote
+        while (i < text.length) {
+          if (text[i] === '"') {
+            if (i + 1 < text.length && text[i + 1] === '"') {
+              val += '"'; i += 2;
+            } else {
+              i++; // skip closing quote
+              break;
+            }
+          } else {
+            val += text[i]; i++;
+          }
+        }
+      } else {
+        while (i < text.length && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') {
+          val += text[i]; i++;
+        }
+      }
+      row.push(val.trim());
+      if (i < text.length && text[i] === ',') { i++; continue; }
+      break;
+    }
+    // skip line endings
+    while (i < text.length && (text[i] === '\r' || text[i] === '\n')) i++;
+    rows.push(row);
+  }
+  return rows;
+}
+
+// Parse European percentage: "17,45%" → 17.45 ; "0,00%" → 0
+function parsePct(s) {
+  if (!s || typeof s !== 'string') return 0;
+  s = s.replace('%', '').replace(/\s/g, '').replace('.', '').replace(',', '.');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+// Parse European euro value: "35,00 €" or "1.200,00 €" → 35.00 / 1200.00
+function parseEuro(s) {
+  if (!s || typeof s !== 'string') return null;
+  const eng = s.trimStart().startsWith('€'); // €12.87 format (dot = decimal)
+  s = s.replace('€', '').replace(/\s/g, '');
+  if (!s || s === '-' || s === '#N/A') return null;
+  if (eng) {
+    // English: dot = decimal — keep as-is
+  } else {
+    // European: period = thousands separator, comma = decimal
+    s = s.replace(/\./g, '').replace(',', '.');
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
+async function loadData() {
+  // Show loading spinner
+  document.getElementById('content').innerHTML =
+    '<div class="loading"><div class="spinner"></div><div class="loading-text">Cargando productos...</div></div>';
+
+  try {
+    const resp = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRLXXlTACXIGgh-zsWqvSU2pfQygeLqmI4UVOvPgnTIjf0MUBgPqrmE3jGbnLDZtQ4dcYWqGruOIUda/pub?output=csv');
+    const text = await resp.text();
+    const rows = parseCSV(text);
+
+    // Skip 4 header/metadata rows
+    const dataRows = rows.slice(4);
+
+    P = dataRows
+      .filter(r => r[0] && r[0].trim() !== '' && r[2] && r[2].trim() !== '')
+      .map(r => {
+        const sku = r[2] ? r[2].trim() : '';
+        const uv = parseInt(r[5]) || 0;
+        const stock = r[6] ? r[6].trim() : '0';
+        return {
+          year:     '2025',
+          familia:  r[0] ? r[0].trim() : '',
+          llegada:  r[1] ? r[1].trim() : '',
+          sku:      sku,
+          desc:     r[4] ? r[4].trim() : '',
+          uv:       uv,
+          stock:    stock,
+          img:      IMG[sku] || '',
+          b2b:      parsePct(r[7]),
+          amazon:   parsePct(r[8]),
+          web:      parsePct(r[9]),
+          markets:  parsePct(r[10]),
+          prive:    parsePct(r[11]),
+          pvpTope:  parseEuro(r[12]),
+          pvpMedio: parseEuro(r[13]),
+          dto:      parsePct(r[19]),
+          paula:    r[20] ? r[20].trim() : '',
+          iris:     r[21] ? r[21].trim() : '',
+          lorenzo:  r[22] ? r[22].trim() : '',
+          handle:   ''
+        };
+      });
+
+    render();
+  } catch (err) {
+    document.getElementById('content').innerHTML =
+      '<div class="loading"><div class="loading-text" style="color:var(--red)">Error al cargar datos. Recarga la pagina.</div></div>';
+    console.error('loadData error:', err);
+  }
+}
+
+async function loadData2026() {
+  try {
+    const resp = await fetch('catalogo2026.csv');
+    const text = await resp.text();
+    const rows = parseCSV(text);
+    // Skip header row (row 0), filter by SKU not empty
+    P2026 = rows.slice(1)
+      .filter(r => r[0] && r[0].trim() !== '')
+      .map(r => {
+        const coste = parseEuro(r[8]);
+        const pvp = parseEuro(r[9]);
+        const margen = pvp && coste ? Math.round((pvp - coste) / pvp * 100) : 0;
+        return {
+          year: '2026',
+          sku: r[0] ? r[0].trim() : '',
+          foto: r[1] ? r[1].trim() : '',
+          coleccion: r[2] ? r[2].trim() : '',
+          categoria: r[3] ? r[3].trim() : '',
+          propietario: r[4] ? r[4].trim() : '',
+          ean: r[5] ? r[5].trim() : '',
+          nombre: r[6] ? r[6].trim() : '',
+          producto: r[7] ? r[7].trim() : '',
+          coste: coste,
+          pvp: pvp,
+          llegada: r[10] ? r[10].trim() : '',
+          cantPrimera: r[11] ? r[11].replace(/\./g,'').trim() : '',
+          cantTotal: r[12] ? r[12].replace(/\./g,'').trim() : '',
+          familia: r[3] ? r[3].trim() : '',
+          desc: ((r[6]||'') + ' ' + (r[7]||'')).trim(),
+          img: '',
+          stock: r[12] ? r[12].replace(/\./g,'').trim() : '',
+          margen: margen
+        };
+      });
+    render();
+  } catch (err) {
+    console.error('loadData2026 error:', err);
+  }
+}
+
+const CE = {'Bolsos':'👜','Flotadores':'🏊','Hamacas':'🪑','Sombrillas':'⛱️',
+  'Respaldos':'🎒','Toallas/Bolsos':'🛍️','Tent/Cabanas':'⛺',
+  'Carro':'🛒','Castillos kids':'🏰','Chalecos':'🦺',
+  'FLOTADORES / HINCHABLES':'🏊','FLOTATION SOLUTIONS':'🛟','FOAM TOYS':'🧸',
+  'BAGS':'👜','SILLAS / HAMACAS':'🪑','SOMBRILLAS':'⛱️','TENTS':'⛺',
+  'TOALLAS':'🏖️','TUMBLERS':'🥤','COOLERS':'🧊','DIVING':'🤿',
+  'FOLDABLES':'🪭','HATS':'🎩','PILLOWS':'🛋️','PONCHOS':'🧥',
+  'SUNGLASSSES':'🕶️','TOYS':'🧸','WAGONS':'🛒','ACCESSORIES':'✨'};
+
+let activeFilter = 'all';   // strategy/stock filter: 'all'|'act:mantener'|'act:ajustar'|'act:liquidar'|'stock:*'
+let activeCat = '';         // category filter (independent): '' or 'cat:Bolsos' etc.
+let activeYear = 'all';    // 'all' | '2025' | '2026'
+let P2026 = [];
+let sortCol = null;
+let sortDir = 'asc';
+let showZeroStock = false;
+let finals = JSON.parse(localStorage.getItem('flamingueo_finals_v1')||'{}');
+function saveFinals() { localStorage.setItem('flamingueo_finals_v1', JSON.stringify(finals)); }
+function setFinal(sku, act) {
+  if (finals[sku] === act) { delete finals[sku]; } else { finals[sku] = act; }
+  saveFinals();
+  render();
+}
+function getAction(p) { return finals[p.sku] || productAction(p); }
+
+
+function toggleSort(col) {
+  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortCol = col; sortDir = ['stock','uv','pvp','coste','margen','cantPrimera','cantTotal','total_eur','potencial'].includes(col) ? 'desc' : 'asc'; }
+  render();
+}
+
+// Column header click: filter-cycling for estrategia/stock, sort for the rest
+const ACT_CYCLE   = ['act:mantener','act:ajustar','act:liquidar'];
+const STOCK_CYCLE = ['stock:bajo','stock:sinstock','stock:constock'];
+
+function closeDropdowns() {
+  document.querySelectorAll('.col-dropdown').forEach(d => d.remove());
+}
+function selectFilter(val) {
+  closeDropdowns();
+  if (!val || val === 'all' || val === activeFilter) {
+    document.querySelector('.pill[data-f="all"]').click();
+  } else if (val.startsWith('act:')) {
+    const p = document.querySelector(`.pill[data-f="${val}"]`);
+    p ? applyFilter(p) : (activeFilter=val, render());
+  } else {
+    activeFilter = val;
+    document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+    render();
+  }
+}
+function colHeaderClick(col) {
+  if (col === 'act' || col === 'stock') {
+    // Close any existing dropdown first
+    const existing = document.querySelector('.col-dropdown');
+    if (existing && existing.dataset.col === col) { closeDropdowns(); return; }
+    closeDropdowns();
+
+    let items = '';
+    if (col === 'act') {
+      const isAll = !activeFilter.startsWith('act:');
+      items += `<div class="col-dropdown-item${isAll?' active':''}" onclick="event.stopPropagation();selectFilter('all')"><span class="dd-icon">📋</span>Todas</div>`;
+      items += `<div class="col-dropdown-item${activeFilter==='act:mantener'?' active':''}" onclick="event.stopPropagation();selectFilter('act:mantener')"><span class="dd-icon">🟢</span>Mantener</div>`;
+      items += `<div class="col-dropdown-item${activeFilter==='act:ajustar'?' active':''}" onclick="event.stopPropagation();selectFilter('act:ajustar')"><span class="dd-icon">🟡</span>Ajustar precio</div>`;
+      items += `<div class="col-dropdown-item${activeFilter==='act:liquidar'?' active':''}" onclick="event.stopPropagation();selectFilter('act:liquidar')"><span class="dd-icon">🔴</span>Liquidar</div>`;
+    } else {
+      const isAll = !activeFilter.startsWith('stock:');
+      items += `<div class="col-dropdown-item${isAll?' active':''}" onclick="event.stopPropagation();selectFilter('all')"><span class="dd-icon">📋</span>Todo stock</div>`;
+      items += `<div class="col-dropdown-item${activeFilter==='stock:constock'?' active':''}" onclick="event.stopPropagation();selectFilter('stock:constock')"><span class="dd-icon">🟢</span>Demasiado stock</div>`;
+      items += `<div class="col-dropdown-item${activeFilter==='stock:bajo'?' active':''}" onclick="event.stopPropagation();selectFilter('stock:bajo')"><span class="dd-icon">🟡</span>Stock suficiente</div>`;
+      items += `<div class="col-dropdown-item${activeFilter==='stock:sinstock'?' active':''}" onclick="event.stopPropagation();selectFilter('stock:sinstock')"><span class="dd-icon">🔴</span>Poco stock</div>`;
+    }
+
+    // Find the header element and append dropdown
+    const headers = document.querySelectorAll('.list-th');
+    let target = null;
+    const search = col === 'act' ? 'estrategia' : 'stock';
+    headers.forEach(h => { if (h.textContent.toLowerCase().includes(search)) target = h; });
+    if (target) {
+      const dd = document.createElement('div');
+      dd.className = 'col-dropdown';
+      dd.dataset.col = col;
+      dd.innerHTML = items;
+      dd.onclick = e => e.stopPropagation();
+      target.appendChild(dd);
+      // Close on outside click
+      setTimeout(() => document.addEventListener('click', closeDropdowns, {once:true}), 0);
+    }
+  } else {
+    toggleSort(col);
+  }
+}
+
+const ACT_ORDER = {mantener:0, ajustar:1, liquidar:2, null:3};
+function sortProducts(arr) {
+  if (!sortCol) return arr;
+  return [...arr].sort((a, b) => {
+    let va, vb;
+    if (sortCol === 'sku')   { va = a.sku; vb = b.sku; }
+    if (sortCol === 'desc')  { va = a.desc; vb = b.desc; }
+    if (sortCol === 'act')   { va = ACT_ORDER[getAction(a)??'null']; vb = ACT_ORDER[getAction(b)??'null']; }
+    if (sortCol === 'stock') { va = parseInt(a.stock)||0; vb = parseInt(b.stock)||0; }
+    if (sortCol === 'uv')    { va = a.uv||0; vb = b.uv||0; }
+    if (sortCol === 'fecha') { va = a.llegada||''; vb = b.llegada||''; }
+    if (sortCol === 'total_eur') { va = (a.uv||0)*(a.pvpMedio||0); vb = (b.uv||0)*(b.pvpMedio||0); }
+    if (sortCol === 'potencial') { va = (a.pvpMedio||0)*(parseInt(a.stock)||0); vb = (b.pvpMedio||0)*(parseInt(b.stock)||0); }
+    if (sortCol === 'pvp')   { va = a.pvp||a.pvpMedio||0; vb = b.pvp||b.pvpMedio||0; }
+    if (sortCol === 'coste') { va = a.coste||0; vb = b.coste||0; }
+    if (sortCol === 'margen') { va = a.margen||0; vb = b.margen||0; }
+    if (sortCol === 'coleccion') { va = a.coleccion||''; vb = b.coleccion||''; }
+    if (sortCol === 'cantPrimera') { va = parseInt(a.cantPrimera)||0; vb = parseInt(b.cantPrimera)||0; }
+    if (sortCol === 'cantTotal') { va = parseInt(a.cantTotal)||0; vb = parseInt(b.cantTotal)||0; }
+    if (sortCol === 'potencial26') { va = (a.pvp||0)*(parseInt(a.cantTotal)||0); vb = (b.pvp||0)*(parseInt(b.cantTotal)||0); }
+    if (sortCol === 'familia') { va = a.familia||''; vb = b.familia||''; }
+    if (va < vb) return sortDir === 'asc' ? -1 : 1;
+    if (va > vb) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+
+// ── Comment normalisation ──────────────────────────────────────────────────
+function normalizeComment(c) {
+  if (!c || !c.trim()) return 'mantener'; // en blanco = Mantener
+  const l = c.toLowerCase();
+  if (l.includes('liquidar') || l.includes('liquidaci') ||
+      l.includes('outlet') || l.includes('primaprix') ||
+      l.includes('veepee') || l.includes('descuento agresivo') ||
+      l.includes('descuento  agresivo') ||
+      l.includes('sin stock y no reponemos') ||
+      l.includes('producto antiguo'))
+    return 'liquidar';
+  if (l.includes('ajust') || l.includes('rebajar') ||
+      l.includes('bajar') || l.includes('bajada') ||
+      l.includes('bajamos') || l.includes('dtos') ||
+      l.includes('dto ') || l.includes('descuento') ||
+      l.includes('rebaj') || l.includes('pvp rebajado') ||
+      l.includes('foco b2c'))
+    return 'ajustar';
+  if (l.includes('mantener') || l.includes('mantiene') ||
+      l.includes('sa mantiene') || l.includes('precio tope') ||
+      l.includes('pvp tope') || l.includes('más vis') ||
+      l.includes('visibilidad') || l.includes('visualiz'))
+    return 'mantener';
+  return null;
+}
+
+/// Product-level action: most conservative wins (mantener > ajustar > liquidar)
+function productAction(p) {
+  const acts = [normalizeComment(p.paula), normalizeComment(p.iris), normalizeComment(p.lorenzo)].filter(Boolean);
+  if (acts.includes('mantener')) return 'mantener';
+  if (acts.includes('ajustar')) return 'ajustar';
+  if (acts.includes('liquidar')) return 'liquidar';
+  return null;
+}
+
+const ACTION_LABEL = {mantener:'Mantener', ajustar:'Ajustar precio', liquidar:'Liquidar'};
+const ACTION_ICON  = {mantener:'🟢', ajustar:'🟡', liquidar:'🔴'};
+const ACTION_COL   = {mantener:'#34C759', ajustar:'#FF9500', liquidar:'#FF3B30'};
+const ACTION_BG    = {mantener:'rgba(52,199,89,0.12)', ajustar:'rgba(255,149,0,0.12)', liquidar:'rgba(255,59,48,0.12)'};
+
+function actionBadge(p) {
+  const act = getAction(p);
+  if (!act) return '<span class="action-badge ab-none">Sin acción</span>';
+  const isManual = !!finals[p.sku];
+  const cls = isManual
+    ? {mantener:'ab-confirmed-mantener',ajustar:'ab-confirmed-ajustar',liquidar:'ab-confirmed-liquidar'}[act]
+    : {mantener:'ab-mantener',ajustar:'ab-ajustar',liquidar:'ab-liquidar'}[act];
+  const icon = isManual ? '✅' : ACTION_ICON[act];
+  return `<span class="action-badge ${cls}">${icon} ${ACTION_LABEL[act]}</span>`;
+}
+
+function stockCol(s, uv) {
+  const stock = parseInt(s) || 0;
+  if (stock === 0) return '#FF3B30';
+  const sold = parseFloat(uv) || 0;
+  if (sold === 0) return '#34C759';          // sin datos de ventas → verde
+  if (stock > sold)        return '#34C759'; // más stock que vendido → verde
+  if (stock > sold * 0.3)  return '#FF9500'; // entre 30% y 100% de lo vendido → amarillo
+  return '#FF3B30';                          // menos del 30% de lo vendido → rojo
+}
+
+function commentCol(c) {
+  return ACTION_COL[normalizeComment(c)];
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// Format numbers with dot as thousands separator (Spanish style)
+function fmtN(v){ return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+function fmtEur(v){ return fmtN(v) + '\u20AC'; }
+function fmtEurD(v, dec){ const s=v.toFixed(dec||2); const [i,d]=s.split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g,'.') + (d?','+d:'') + '\u20AC'; }
+function fmtK(v){ return v >= 1000 ? fmtEurD(v/1000,1).replace('€','K€') : fmtEur(v); }
+
+function applyFilter(el) {
+  activeFilter = el.dataset.f;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function applyCatFilter(val) {
+  activeCat = val || '';
+  document.getElementById('cat-select').value = activeCat;
+  render();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function filterCat(cat) {
+  const f = `cat:${cat}`;
+  if (activeCat === f) {
+    applyCatFilter('');
+  } else {
+    applyCatFilter(f);
+  }
+}
+
+function tabClick(f, el) {
+  const pill = document.querySelector(`.pill[data-f="${f}"]`);
+  if (pill) { applyFilter(pill); }
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function tabYearClick(year, el) {
+  activeYear = year;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  // Reset filters
+  activeFilter = 'all';
+  activeCat = '';
+  sortCol = null;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  const allPill = document.querySelector('.pill[data-f="all"]');
+  if (allPill) allPill.classList.add('active');
+  document.getElementById('cat-select').value = '';
+  // Show/hide strategy filters
+  const stratBlock = document.getElementById('strategy-filters');
+  if (stratBlock) stratBlock.style.display = (year === '2026') ? 'none' : '';
+  // Update category dropdown
+  updateCatDropdown();
+  render();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function updateCatDropdown() {
+  let cats = [];
+  if (activeYear === '2025') {
+    cats = [...new Set(P.map(p => p.familia).filter(Boolean))];
+  } else if (activeYear === '2026') {
+    cats = [...new Set(P2026.map(p => p.familia).filter(Boolean))];
+  } else {
+    cats = [...new Set([...P.map(p => p.familia), ...P2026.map(p => p.familia)].filter(Boolean))];
+  }
+  cats.sort((a, b) => a.localeCompare(b));
+  let html = '<option value="">Todas las categorías</option>';
+  cats.forEach(c => {
+    html += `<option value="cat:${c}">${CE[c]||'📦'} ${c}</option>`;
+  });
+  document.getElementById('cat-select').innerHTML = html;
+}
+
+function getFiltered() {
+  const q = (document.getElementById('q').value||'').toLowerCase().trim();
+  // Select dataset based on year
+  let source;
+  if (activeYear === '2025') source = P;
+  else if (activeYear === '2026') source = P2026;
+  else source = [...P, ...P2026]; // 'all'
+
+  return source.filter(p => {
+    if (p.year === '2025') {
+      if (!showZeroStock && (parseInt(p.stock)||0) === 0) return false;
+      if (activeFilter.startsWith('act:') && getAction(p) !== activeFilter.slice(4)) return false;
+      if (activeFilter === 'stock:sinstock' && p.stock && p.stock !== '#N/A' && parseInt(p.stock) > 0) return false;
+      if (activeFilter === 'stock:bajo') { const s = parseInt(p.stock)||0; if (s === 0 || s >= 30) return false; }
+      if (activeFilter === 'stock:constock' && (!p.stock || p.stock === '#N/A' || parseInt(p.stock) < 30)) return false;
+    }
+    if (activeCat.startsWith('cat:') && p.familia !== activeCat.slice(4)) return false;
+    if (q && !(p.desc+p.sku+(p.familia||'')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function render() {
+  const filtered = getFiltered();
+  document.getElementById('hdr-count').textContent = filtered.length + ' productos';
+
+  // ── Potential card & Stats: different per year ──
+  if (activeYear === '2026') {
+    // 2026 stats
+    const total26 = filtered.length;
+    // PVP medio ponderado: Σ(pvp × cantTotal) / Σ(cantTotal)
+    let pvpWsum = 0, pvpWtot = 0;
+    filtered.forEach(p => {
+      const pvp = p.pvp || 0;
+      const cant = parseInt(p.cantTotal) || 0;
+      if (pvp > 0 && cant > 0) { pvpWsum += pvp * cant; pvpWtot += cant; }
+    });
+    const pvpMedio26 = pvpWtot > 0 ? pvpWsum / pvpWtot : 0;
+    const inversion = filtered.reduce((s,p) => s + ((p.coste||0) * (parseInt(p.cantTotal)||0)), 0);
+    const revenue = filtered.reduce((s,p) => s + ((p.pvp||0) * (parseInt(p.cantTotal)||0)), 0);
+    const totalUnits26 = filtered.reduce((s,p) => s + (parseInt(p.cantTotal)||0), 0);
+    document.getElementById('potential-card').innerHTML = `<div class="pot-card" onclick="openBreakdownPopup()" style="cursor:pointer">
+      <div class="pot-lbl">Inversión total en producto</div>
+      <div class="pot-main">${fmtEur(inversion)}</div>
+      <div class="pot-sub">${fmtN(totalUnits26)} unidades · ${total26} referencias</div>
+    </div>`;
+    document.getElementById('stats-row').innerHTML = `
+      <div class="sc"><div class="sv">${total26}</div><div class="sl">Total</div></div>
+      <div class="sc"><div class="sv" style="color:var(--blue)">${pvpMedio26 ? fmtEurD(pvpMedio26,2) : '—'}</div><div class="sl">PVP ponderado</div></div>
+      <div class="sc"><div class="sv" style="color:var(--orange)">${fmtK(inversion)}</div><div class="sl">Inversión</div></div>
+      <div class="sc" onclick="openBreakdownPopup('potencial')" style="cursor:pointer"><div class="sv" style="color:var(--green)">${fmtK(revenue)}</div><div class="sl">Potencial</div></div>`;
+  } else {
+    // 2025 or all: show potencial card and stock stats only for 2025 items
+    const f25 = filtered.filter(p => p.year === '2025');
+    let potTotal = 0, potMantener = 0, potAjustar = 0, potLiquidar = 0;
+    f25.forEach(p => {
+      const s = parseInt(p.stock)||0;
+      if (s <= 0) return;
+      const price = p.pvpMedio || 0;
+      const pot = s * price;
+      potTotal += pot;
+      const act = getAction(p);
+      if (act === 'mantener') potMantener += pot;
+      else if (act === 'ajustar') potAjustar += pot;
+      else if (act === 'liquidar') potLiquidar += pot;
+    });
+    const potUnits = f25.filter(p => (parseInt(p.stock)||0) > 0).reduce((s,p)=>s+(parseInt(p.stock)||0),0);
+    document.getElementById('potential-card').innerHTML = potTotal > 0 ? `<div class="pot-card" onclick="openBreakdownPopup()" style="cursor:pointer">
+      <div class="pot-lbl">Potencial total de venta</div>
+      <div class="pot-main">${fmtEur(potTotal)}</div>
+      <div class="pot-sub">${fmtN(potUnits)} unidades en stock · PVP medio vendido</div>
+      <div class="pot-breakdown">
+        <div class="pot-item" onclick="event.stopPropagation();openBreakdownPopup('mantener')" style="cursor:pointer">
+          <div class="pot-item-val" style="color:#34C759">${fmtK(potMantener)}</div>
+          <div class="pot-item-lbl">🟢 Mantener</div>
+        </div>
+        <div class="pot-item" onclick="event.stopPropagation();openBreakdownPopup('ajustar')" style="cursor:pointer">
+          <div class="pot-item-val" style="color:#FF9500">${fmtK(potAjustar)}</div>
+          <div class="pot-item-lbl">🟡 Ajustar</div>
+        </div>
+        <div class="pot-item" onclick="event.stopPropagation();openBreakdownPopup('liquidar')" style="cursor:pointer">
+          <div class="pot-item-val" style="color:#FF3B30">${fmtK(potLiquidar)}</div>
+          <div class="pot-item-lbl">🔴 Liquidar</div>
+        </div>
+      </div>
+    </div>` : '';
+
+    const total = filtered.length;
+    const conStock = f25.filter(p => p.stock && p.stock !== '#N/A' && parseInt(p.stock) > 0).length;
+    const sinStock = f25.filter(p => !p.stock || p.stock === '#N/A' || parseInt(p.stock) === 0).length;
+    const bajStock = f25.filter(p => p.stock && p.stock !== '#N/A' && parseInt(p.stock) > 0 && parseInt(p.stock) < 30).length;
+    document.getElementById('stats-row').innerHTML = `
+      <div class="sc"><div class="sv">${total}</div><div class="sl">Total</div></div>
+      <div class="sc"><div class="sv" style="color:var(--green)">${conStock}</div><div class="sl">Demasiado</div></div>
+      <div class="sc"><div class="sv" style="color:var(--red)">${sinStock}</div><div class="sl">Poco stock</div></div>
+      <div class="sc"><div class="sv" style="color:var(--orange)">${bajStock}</div><div class="sl">Suficiente</div></div>
+      <button class="zero-toggle${showZeroStock?' zt-on':''}" onclick="showZeroStock=!showZeroStock;render()">${showZeroStock?'👁 Mostrando sin stock':'👁 Sin stock'}</button>`;
+  }
+
+  // Group by familia
+  const cats = {};
+  filtered.forEach(p => {
+    if (!cats[p.familia]) cats[p.familia] = [];
+    cats[p.familia].push(p);
+  });
+
+  let html = '';
+
+  // Helper to get modal index call
+  function modalCall(p) {
+    if (p.year === '2026') return `openModal2026(${P2026.indexOf(p)})`;
+    return `openModal(${P.indexOf(p)})`;
+  }
+
+  // ── Determine grid class based on activeYear ──
+  const gridClass = activeYear === '2026' ? 'list-2026' : activeYear === '2025' ? 'list-2025' : 'list-all';
+
+  {
+    // LIST VIEW — tabla con cabeceras de columna ordenables
+    const thArr = (col, label) => {
+      const isSort = col !== 'act' && col !== 'stock';
+      const isS = isSort && sortCol === col;
+      let indicator = '';
+      if (col === 'act') {
+        if (activeFilter.startsWith('act:')) {
+          const v = activeFilter.slice(4);
+          indicator = `<span class="sort-arrow">${ACTION_ICON[v]}</span>`;
+        } else indicator = `<span class="sort-arrow" style="opacity:.35">⇅</span>`;
+      } else if (col === 'stock') {
+        const stockLabels = {'stock:bajo':'🟡','stock:sinstock':'🔴','stock:constock':'🟢'};
+        indicator = stockLabels[activeFilter]
+          ? `<span class="sort-arrow">${stockLabels[activeFilter]}</span>`
+          : `<span class="sort-arrow" style="opacity:.35">⇅</span>`;
+      } else {
+        indicator = `<span class="sort-arrow">${isS ? (sortDir==='asc'?'↑':'↓') : '↕'}</span>`;
+      }
+      const active = (col==='act' && activeFilter.startsWith('act:')) ||
+                     (col==='stock' && activeFilter.startsWith('stock:')) || isS;
+      return `<div class="list-th${active?' sorted':''}" onclick="colHeaderClick('${col}')">
+        ${label}${indicator}</div>`;
+    };
+
+    const thSimple = (col, label) => {
+      const isS = sortCol === col;
+      const indicator = `<span class="sort-arrow">${isS ? (sortDir==='asc'?'↑':'↓') : '↕'}</span>`;
+      return `<div class="list-th${isS?' sorted':''}" onclick="toggleSort('${col}')">
+        ${label}${indicator}</div>`;
+    };
+
+    // Build table header based on year
+    html += `<div class="${gridClass}"><div class="list-thead"><div class="list-thead-row">`;
+    if (activeYear === '2025') {
+      html += `<div class="list-th" style="cursor:default">Foto</div>
+        ${thArr('sku','SKU')}
+        ${thArr('desc','Descripción')}
+        ${thArr('fecha','Llegada')}
+        ${thArr('act','Estrategia')}
+        ${thArr('stock','Stock')}
+        ${thArr('uv','Uds. 2025')}
+        ${thArr('total_eur','Total €')}
+        ${thArr('potencial','Potencial')}`;
+    } else if (activeYear === '2026') {
+      html += `<div class="list-th" style="cursor:default">Foto</div>
+        ${thSimple('sku','SKU')}
+        ${thSimple('desc','Nombre')}
+        ${thSimple('pvp','PVP')}
+        ${thSimple('fecha','Llegada')}
+        ${thSimple('cantTotal','Uds. Total')}
+        ${thSimple('potencial26','Potencial')}`;
+    } else {
+      // 'all' mixed view
+      html += `<div class="list-th" style="cursor:default">Foto</div>
+        ${thSimple('sku','SKU')}
+        ${thSimple('desc','Nombre')}
+        ${thSimple('familia','Categoría')}
+        ${thSimple('pvp','PVP')}
+        ${thSimple('fecha','Llegada')}
+        <div class="list-th" style="cursor:default">Año</div>`;
+    }
+    html += `</div></div>`;
+
+    // Collect and optionally sort all filtered products
+    const allSorted = sortProducts(filtered);
+
+    // Row rendering function
+    function renderRow(p, i) {
+      const thumb = p.img
+        ? `<img class="list-thumb" src="${esc(p.img)}" alt="${esc(p.desc)}" loading="lazy"/>`
+        : `<div class="list-thumb-ph">${CE[p.familia]||'📦'}</div>`;
+      const llegadaDisp = p.llegada && p.llegada !== '-' ? p.llegada : '—';
+
+      if (activeYear === '2025') {
+        const act = getAction(p);
+        const sc = stockCol(p.stock, p.uv);
+        const stockNum = (!p.stock || p.stock === '#N/A') ? '0' : p.stock;
+        const isManual = !!finals[p.sku];
+        const acCls = act ? (isManual
+          ? {mantener:'ab-confirmed-mantener',ajustar:'ab-confirmed-ajustar',liquidar:'ab-confirmed-liquidar'}[act]
+          : {mantener:'ab-mantener',ajustar:'ab-ajustar',liquidar:'ab-liquidar'}[act]) : 'ab-none';
+        const acLbl = act ? `${isManual ? '✅' : ACTION_ICON[act]} ${ACTION_LABEL[act]}` : '—';
+        return `<div class="list-row" onclick="${modalCall(p)}" style="animation-delay:${i*0.01}s">
+          <div class="list-cell">${thumb}</div>
+          <div class="list-cell"><span class="list-sku">${esc(p.sku)}</span></div>
+          <div class="list-cell"><span class="list-name">${esc(p.desc)}</span></div>
+          <div class="list-cell"><span class="list-date-val">${llegadaDisp}</span></div>
+          <div class="list-cell"><span class="action-badge ab-sm ${acCls}">${acLbl}</span></div>
+          <div class="list-cell">
+            <div class="list-stock-cell">
+              <div class="list-dot" style="background:${sc}"></div>
+              <span class="list-stock-num" style="color:${sc}">${stockNum}</span>
+            </div>
+          </div>
+          <div class="list-cell"><span class="list-uv-val">${p.uv}</span></div>
+          <div class="list-cell"><span class="list-uv-val" style="font-weight:700;color:var(--t1)">${p.pvpMedio ? fmtEur(p.uv * p.pvpMedio) : '—'}</span></div>
+          <div class="list-cell"><span class="list-uv-val" style="font-weight:700;color:var(--purple)">${p.pvpMedio && parseInt(p.stock) > 0 ? fmtEur(p.pvpMedio * (parseInt(p.stock)||0)) : '—'}</span></div>
+        </div>`;
+      } else if (activeYear === '2026') {
+        const pot26 = p.pvp && p.cantTotal ? p.pvp * parseInt(p.cantTotal) : 0;
+        return `<div class="list-row" onclick="${modalCall(p)}" style="animation-delay:${i*0.01}s">
+          <div class="list-cell">${thumb}</div>
+          <div class="list-cell"><span class="list-sku">${esc(p.sku)}</span></div>
+          <div class="list-cell"><span class="list-name">${esc(p.desc)}</span></div>
+          <div class="list-cell"><span class="list-uv-val" style="font-weight:700">${p.pvp ? fmtEurD(p.pvp,2) : '—'}</span></div>
+          <div class="list-cell"><span class="list-date-val">${llegadaDisp}</span></div>
+          <div class="list-cell"><span class="list-uv-val" style="font-weight:700">${p.cantTotal||'—'}</span></div>
+          <div class="list-cell"><span class="list-uv-val" style="font-weight:700;color:var(--purple)">${pot26 ? fmtEur(pot26) : '—'}</span></div>
+        </div>`;
+      } else {
+        // 'all' mixed view
+        const pvpVal = p.year === '2025' ? (p.pvpMedio ? fmtEurD(p.pvpMedio,2) : '—') : (p.pvp ? fmtEurD(p.pvp,2) : '—');
+        const yearBadge = p.year === '2026'
+          ? '<span style="font-size:10px;font-weight:700;color:#fff;background:var(--blue);padding:2px 6px;border-radius:6px">26</span>'
+          : '<span style="font-size:10px;font-weight:700;color:var(--t3);background:rgba(142,142,147,0.12);padding:2px 6px;border-radius:6px">25</span>';
+        return `<div class="list-row" onclick="${modalCall(p)}" style="animation-delay:${i*0.01}s">
+          <div class="list-cell">${thumb}</div>
+          <div class="list-cell"><span class="list-sku">${esc(p.sku)}</span></div>
+          <div class="list-cell"><span class="list-name">${esc(p.desc)}</span></div>
+          <div class="list-cell"><span class="list-date-val">${esc(p.familia||'—')}</span></div>
+          <div class="list-cell"><span class="list-uv-val" style="font-weight:700">${pvpVal}</span></div>
+          <div class="list-cell"><span class="list-date-val">${llegadaDisp}</span></div>
+          <div class="list-cell">${yearBadge}</div>
+        </div>`;
+      }
+    }
+
+    // If sorting is active, render flat list without category grouping
+    if (sortCol) {
+      html += '<div class="cat-sec">';
+      allSorted.forEach((p, i) => { html += renderRow(p, i); });
+      html += '</div>';
+    } else {
+      // Group by category
+      const catOrder = [...new Set(allSorted.map(p => p.familia))];
+      catOrder.forEach(cat => {
+        const items = allSorted.filter(p => p.familia === cat);
+        const isCatActive = activeCat === `cat:${cat}`;
+        html += `<div class="cat-sec">
+          <div class="list-cat-hdr${isCatActive?' active-cat':''}" style="cursor:pointer" onclick="filterCat('${cat.replace(/'/g,"\\'")}')">
+            <span class="cat-title">${CE[cat]||'📦'} ${cat}</span>
+            <span class="cat-badge">${items.length}</span>
+          </div>`;
+        items.forEach((p, i) => { html += renderRow(p, i); });
+        html += '</div>';
+      });
+    }
+    html += '</div>'; // close gridClass wrapper
+  }
+
+  document.getElementById('content').innerHTML = html;
+}
+
+// ── Pricing HTML builder ──────────────────────────────────────────────────
+function dtoColor(dto) {
+  if (dto <= 15) return '#34C759';
+  if (dto <= 35) return '#FF9500';
+  return '#FF3B30';
+}
+
+function buildPricingHtml(p) {
+  const hasPvp = p.pvpTope || p.pvpMedio;
+  if (!hasPvp) return '';
+  const pvpTopeStr = p.pvpTope ? fmtEurD(p.pvpTope,2) : '\u2014';
+  const pvpMedioStr = p.pvpMedio ? fmtEurD(p.pvpMedio,2) : '\u2014';
+  const dtoStr = (p.dto != null && p.dto !== 0) ? p.dto.toFixed(1) + '%' : '\u2014';
+  const dc = dtoColor(p.dto || 0);
+  return `<div class="m-pricing">
+    <div class="rev-lbl">Precios</div>
+    <div class="pricing-row">
+      <div class="price-card">
+        <div class="price-label">PVP Tope</div>
+        <div class="price-val">${pvpTopeStr}</div>
+      </div>
+      <div class="price-card">
+        <div class="price-label">PVP Medio</div>
+        <div class="price-val" style="color:${p.pvpMedio ? dc : 'var(--t3)'}">${pvpMedioStr}</div>
+      </div>
+      <div class="price-card">
+        <div class="price-label">Dto. medio</div>
+        <div class="price-val" style="color:${p.dto ? dc : 'var(--t3)'}">${dtoStr}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Channels HTML builder ──────────────────────────────────────────────────
+function buildChannelsHtml(p) {
+  const channels = [
+    {name:'B2B', val:p.b2b, color:'#007AFF'},
+    {name:'Amazon', val:p.amazon, color:'#FF9500'},
+    {name:'Web', val:p.web, color:'#34C759'},
+    {name:'Markets', val:p.markets, color:'#5856D6'},
+    {name:'Campañas privé', val:p.prive, color:'#FF2D55'}
+  ];
+  const hasAny = channels.some(c => c.val > 0);
+  if (!hasAny) return '';
+  return `<div class="m-channels">
+    <div class="rev-lbl">Distribución por canales (2025)</div>
+    <div class="channel-chart-wrap">
+      <canvas id="pie-canvas" width="140" height="140"></canvas>
+      <div class="channel-legend" id="channel-legend"></div>
+    </div>
+  </div>`;
+}
+
+// ── Pie chart drawing ──────────────────────────────────────────────────
+function drawPieChart(p) {
+  const canvas = document.getElementById('pie-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const channels = [
+    {name:'B2B', val:p.b2b, color:'#007AFF'},
+    {name:'Amazon', val:p.amazon, color:'#FF9500'},
+    {name:'Web', val:p.web, color:'#34C759'},
+    {name:'Markets', val:p.markets, color:'#5856D6'},
+    {name:'Campañas privé', val:p.prive, color:'#FF2D55'}
+  ];
+  const active = channels.filter(c => c.val > 0);
+  if (!active.length) return;
+  const total = active.reduce((s, c) => s + c.val, 0);
+  const cx = 70, cy = 70, r = 60;
+  let startAngle = -Math.PI / 2;
+
+  active.forEach(ch => {
+    const sliceAngle = (ch.val / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = ch.color;
+    ctx.fill();
+    startAngle += sliceAngle;
+  });
+
+  // Inner circle for donut effect
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.52, 0, 2 * Math.PI);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fill();
+
+  // Build legend
+  const legendEl = document.getElementById('channel-legend');
+  if (legendEl) {
+    legendEl.innerHTML = active.map(ch =>
+      `<div class="ch-leg-item">
+        <div class="ch-leg-dot" style="background:${ch.color}"></div>
+        <span>${ch.name}</span>
+        <span class="ch-leg-pct">${ch.val.toFixed(1)}%</span>
+      </div>`
+    ).join('');
+  }
+}
+
+function openModal(idx) {
+  const p = P[idx];
+  const sCol = stockCol(p.stock, p.uv);
+  const sRGB = sCol === '#FF3B30' ? '255,59,48' : sCol === '#FF9500' ? '255,149,0' : '52,199,89';
+  const stockN = parseInt(p.stock)||0;
+  const sLbl = stockN === 0 ? 'Sin stock' : sCol === '#FF3B30' ? 'Stock crítico' : sCol === '#FF9500' ? 'Stock bajo' : 'Stock suficiente';
+  const suggested = productAction(p);
+  const finalAct = finals[p.sku] || null;
+  const act = finalAct || suggested;
+
+  const imgH = p.img
+    ? `<img src="${esc(p.img)}" alt="${esc(p.desc)}" style="max-height:100%;max-width:100%;object-fit:contain;padding:16px">`
+    : `<div class="m-img-no">${CE[p.familia]||'📦'}</div>`;
+
+  // Potencial de venta del producto
+  const potStock = parseInt(p.stock)||0;
+  const potVal = p.pvpMedio && potStock > 0 ? Math.round(p.pvpMedio * potStock) : null;
+  const potencialHtml = potVal ? `<div class="m-potencial">
+    <span class="m-pot-icon">💰</span>
+    <div>
+      <div class="m-pot-label">Potencial de venta</div>
+      <div class="m-pot-val">${fmtEur(potVal)}</div>
+      <div class="m-pot-detail">${fmtN(potStock)} uds × ${fmtEurD(p.pvpMedio,2)} PVP medio</div>
+    </div>
+  </div>` : '';
+
+  // Llegada display
+  const llegadaVal = p.llegada && p.llegada !== '-' ? p.llegada : 'Sin fecha';
+  const llegadaHtml = `<div class="m-llegada">
+    <span class="m-llegada-icon">📅</span>
+    <div>
+      <div class="m-llegada-label">Llegada al almacén</div>
+      <div class="m-llegada-val">${esc(llegadaVal)}</div>
+    </div>
+  </div>`;
+
+  // Action summary
+  let actionHtml = '';
+  if (suggested) {
+    actionHtml = `<div class="m-action" style="background:${ACTION_BG[suggested]}">
+      <span class="m-action-icon">${ACTION_ICON[suggested]}</span>
+      <div>
+        <div class="m-action-label">Acción sugerida</div>
+        <div class="m-action-val" style="color:${ACTION_COL[suggested]}">${ACTION_LABEL[suggested]}</div>
+      </div>
+    </div>`;
+  }
+
+  // Decision HTML
+  const pIdx = P.indexOf(p);
+  const decisionHtml = `<div class="m-decision">
+    <div class="rev-lbl" style="margin-bottom:8px">Decisión final</div>
+    <div class="dec-btns">
+      <button class="dec-btn${finalAct==='mantener'?' dec-active-mantener':''}" onclick="setFinal('${esc(p.sku)}','mantener');openModal(${pIdx})">🟢 Mantener</button>
+      <button class="dec-btn${finalAct==='ajustar'?' dec-active-ajustar':''}" onclick="setFinal('${esc(p.sku)}','ajustar');openModal(${pIdx})">🟡 Ajustar</button>
+      <button class="dec-btn${finalAct==='liquidar'?' dec-active-liquidar':''}" onclick="setFinal('${esc(p.sku)}','liquidar');openModal(${pIdx})">🔴 Liquidar</button>
+    </div>
+  </div>`;
+
+  function revCard(col, letter, name, role, comment) {
+    const act2 = normalizeComment(comment);
+    const catHtml = act2
+      ? `<span class="rev-cat" style="background:${ACTION_BG[act2]};color:${ACTION_COL[act2]}">${ACTION_ICON[act2]} ${ACTION_LABEL[act2]}</span>`
+      : '';
+    return `<div class="rev-card">
+      <div class="rev-hd">
+        <div class="rev-av" style="background:${col}">${letter}</div>
+        <div>
+          <div class="rev-name">${name}</div>
+          <div class="rev-role">${role}</div>
+          ${catHtml}
+        </div>
+      </div>
+      ${comment
+        ? `<div class="rev-comment">"${esc(comment)}"</div>`
+        : `<div class="no-comment">Sin comentario</div>`}
+    </div>`;
+  }
+
+  document.getElementById('m-img').style.display = '';
+  document.getElementById('m-img').innerHTML = imgH;
+  document.getElementById('m-body').innerHTML = `
+    <div class="m-sku">${esc(p.sku)}</div>
+    <div class="m-title">${esc(p.desc)}</div>
+    <div class="m-chips">
+      <span class="chip" style="background:rgba(0,122,255,0.1);color:#007AFF">📊 ${p.uv} uds. vendidas 2025</span>
+      <span class="chip" style="background:rgba(${sRGB},0.12);color:${sCol}">📦 ${p.stock==='#N/A'?'—':p.stock} uds · ${sLbl}</span>
+      <span class="chip" style="background:rgba(142,142,147,0.1);color:#636366">${CE[p.familia]||'📦'} ${p.familia}</span>
+    </div>
+    ${llegadaHtml}
+    ${potencialHtml}
+    ${actionHtml}
+    ${decisionHtml}
+    ${buildPricingHtml(p)}
+    ${buildChannelsHtml(p)}
+    <div class="rev-lbl">Valoraciones del equipo</div>
+    ${revCard('#FF2D55','P','Paula Bayona','Comentario B2C',p.paula)}
+    ${revCard('#5856D6','I','Iris Carbonell','Comentario B2B',p.iris)}
+    ${revCard('#FF9500','L','Lorenzo Toderas','Comentario Marketing',p.lorenzo)}`;
+
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('m-body').scrollTop = 0;
+  drawPieChart(p);
+}
+
+function openModal2026(idx) {
+  const p = P2026[idx];
+  if (!p) return;
+
+  const imgH = p.foto
+    ? `<img src="${esc(p.foto)}" alt="${esc(p.desc)}" style="max-height:100%;max-width:100%;object-fit:contain;padding:16px">`
+    : `<div class="m-img-no">${CE[p.familia]||'📦'}</div>`;
+
+  const llegadaVal = p.llegada || 'Sin fecha';
+  const llegadaHtml = `<div class="m-llegada">
+    <span class="m-llegada-icon">📅</span>
+    <div>
+      <div class="m-llegada-label">Fecha estimada de llegada</div>
+      <div class="m-llegada-val">${esc(llegadaVal)}</div>
+    </div>
+  </div>`;
+
+  const margenCol = p.margen >= 40 ? 'var(--green)' : p.margen >= 20 ? 'var(--orange)' : 'var(--red)';
+
+  document.getElementById('m-img').style.display = '';
+  document.getElementById('m-img').innerHTML = imgH;
+  document.getElementById('m-body').innerHTML = `
+    <div class="m-sku">${esc(p.sku)}</div>
+    <div class="m-title">${esc(p.nombre || '')} ${esc(p.producto || '')}</div>
+    <div class="m-chips">
+      <span class="chip" style="background:rgba(0,122,255,0.1);color:#007AFF">${CE[p.familia]||'📦'} ${esc(p.categoria||'')}</span>
+      <span class="chip" style="background:rgba(88,86,214,0.1);color:#5856D6">🏷️ ${esc(p.coleccion||'—')}</span>
+      <span class="chip" style="background:rgba(142,142,147,0.1);color:#636366">👤 ${esc(p.propietario||'—')}</span>
+    </div>
+    <div class="m-pricing">
+      <div class="rev-lbl">Precios</div>
+      <div class="pricing-row">
+        <div class="price-card">
+          <div class="price-label">PVP</div>
+          <div class="price-val">${p.pvp ? fmtEurD(p.pvp,2) : '—'}</div>
+        </div>
+        <div class="price-card">
+          <div class="price-label">Coste</div>
+          <div class="price-val">${p.coste ? fmtEurD(p.coste,2) : '—'}</div>
+        </div>
+        <div class="price-card">
+          <div class="price-label">Margen</div>
+          <div class="price-val" style="color:${margenCol}">${p.margen}%</div>
+        </div>
+      </div>
+    </div>
+    ${llegadaHtml}
+    <div class="rev-lbl" style="margin-top:16px">Cantidades</div>
+    <div class="pricing-row">
+      <div class="price-card">
+        <div class="price-label">1ª Llegada</div>
+        <div class="price-val">${p.cantPrimera ? fmtN(parseInt(p.cantPrimera)||0) : '—'}</div>
+      </div>
+      <div class="price-card">
+        <div class="price-label">Total</div>
+        <div class="price-val">${p.cantTotal ? fmtN(parseInt(p.cantTotal)||0) : '—'}</div>
+      </div>
+      <div class="price-card">
+        <div class="price-label">EAN</div>
+        <div class="price-val" style="font-size:11px">${esc(p.ean||'—')}</div>
+      </div>
+    </div>`;
+
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('m-body').scrollTop = 0;
+}
+
+// ── Breakdown popup (pie chart by category) ──────────────────────────
+let _breakdownSlices = [];
+
+function breakdownFilterCat(cat) {
+  closeModal();
+  applyCatFilter('cat:' + cat);
+}
+
+function openBreakdownPopup(mode) {
+  const filtered = getFiltered();
+  const COLORS = ['#007AFF','#FF9500','#34C759','#5856D6','#FF2D55','#AF52DE','#00C7BE','#FF3B30','#64D2FF','#FFD60A','#30D158','#BF5AF2','#AC8E68','#FF6482','#0A84FF','#32ADE6','#FF375F','#A2845E','#6AC4DC','#DA8FFF'];
+  let title, catMap = {};
+
+  if (!mode) mode = activeYear === '2026' ? 'inversion' : 'potencial';
+
+  if (mode === 'inversion') {
+    title = 'Inversión por categoría';
+    filtered.filter(p => p.year === '2026').forEach(p => {
+      const cat = p.familia || 'Sin categoría';
+      catMap[cat] = (catMap[cat]||0) + (p.coste||0) * (parseInt(p.cantTotal)||0);
+    });
+  } else if (mode === 'potencial') {
+    title = 'Potencial por categoría';
+    if (activeYear === '2026') {
+      filtered.forEach(p => {
+        const cat = p.familia || 'Sin categoría';
+        catMap[cat] = (catMap[cat]||0) + (p.pvp||0) * (parseInt(p.cantTotal)||0);
+      });
+    } else {
+      filtered.filter(p => p.year === '2025').forEach(p => {
+        const s = parseInt(p.stock)||0;
+        if (s <= 0) return;
+        catMap[p.familia || 'Sin categoría'] = (catMap[p.familia || 'Sin categoría']||0) + s * (p.pvpMedio||0);
+      });
+    }
+  } else {
+    // mantener / ajustar / liquidar
+    const labels = {mantener:'Mantener',ajustar:'Ajustar',liquidar:'Liquidar'};
+    title = 'Potencial ' + (labels[mode]||mode) + ' por categoría';
+    filtered.filter(p => p.year === '2025').forEach(p => {
+      const s = parseInt(p.stock)||0;
+      if (s <= 0) return;
+      if (getAction(p) !== mode) return;
+      catMap[p.familia || 'Sin categoría'] = (catMap[p.familia || 'Sin categoría']||0) + s * (p.pvpMedio||0);
+    });
+  }
+
+  const entries = Object.entries(catMap)
+    .map(([name, value]) => ({name, value}))
+    .filter(e => e.value > 0)
+    .sort((a,b) => b.value - a.value);
+  if (!entries.length) return;
+
+  const total = entries.reduce((s,e) => s+e.value, 0);
+  entries.forEach((e,i) => { e.color = COLORS[i % COLORS.length]; e.pct = (e.value/total*100); });
+
+  const legendHtml = entries.map(e => {
+    const safeName = esc(e.name).replace(/'/g, "\\'");
+    return `<div onclick="breakdownFilterCat('${safeName}')" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer">
+      <div style="width:12px;height:12px;border-radius:50%;flex-shrink:0;background:${e.color}"></div>
+      <span style="font-size:13px;font-weight:600;color:var(--t1);flex:1">${CE[e.name]||'📦'} ${esc(e.name)}</span>
+      <span style="font-size:12px;font-weight:700;color:var(--t2);white-space:nowrap">${fmtK(e.value)}</span>
+      <span style="font-size:12px;font-weight:800;color:var(--t1);min-width:42px;text-align:right">${e.pct.toFixed(1)}%</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('m-img').style.display = 'none';
+  document.getElementById('m-body').innerHTML = `
+    <div style="padding:0 20px">
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">${title}</div>
+      <div style="font-size:26px;font-weight:800;letter-spacing:-.6px;color:var(--t1);margin-bottom:16px">${fmtEur(total)}</div>
+      <div style="display:flex;justify-content:center;margin-bottom:20px">
+        <canvas id="breakdown-canvas" width="200" height="200" style="width:200px;height:200px;cursor:pointer"></canvas>
+      </div>
+      <div style="margin-bottom:20px">${legendHtml}</div>
+    </div>`;
+
+  document.getElementById('overlay').classList.add('open');
+
+  // Draw donut and store slices for hit-testing
+  const canvas = document.getElementById('breakdown-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cx = 100, cy = 100, r = 90, ri = r * 0.55;
+  let startAngle = -Math.PI / 2;
+  _breakdownSlices = [];
+
+  entries.forEach(e => {
+    const sliceAngle = (e.value / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = e.color;
+    ctx.fill();
+    _breakdownSlices.push({name: e.name, start: startAngle, end: startAngle + sliceAngle});
+    startAngle += sliceAngle;
+  });
+
+  // Inner circle for donut
+  ctx.beginPath();
+  ctx.arc(cx, cy, ri, 0, 2 * Math.PI);
+  ctx.fillStyle = '#F2F2F7';
+  ctx.fill();
+
+  // Center text
+  ctx.fillStyle = '#1C1C1E';
+  ctx.font = '800 16px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(entries.length + ' cat.', cx, cy);
+
+  // Canvas click handler
+  canvas.onclick = function(evt) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (evt.clientX - rect.left) * (200 / rect.width) - cx;
+    const y = (evt.clientY - rect.top) * (200 / rect.height) - cy;
+    const dist = Math.sqrt(x*x + y*y);
+    if (dist < ri || dist > r) return; // clicked center hole or outside
+    let angle = Math.atan2(y, x);
+    // Normalize to match our startAngle range
+    for (const sl of _breakdownSlices) {
+      let a = angle;
+      // Handle wrap-around
+      if (a < sl.start) a += 2 * Math.PI;
+      if (a >= sl.start && a < sl.end) { breakdownFilterCat(sl.name); return; }
+    }
+  };
+}
+
+function maybeClose(e) {
+  if (e.target === document.getElementById('overlay')) closeModal();
+}
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+loadData();
+loadData2026();
+</script>
+</body>
+</html>
