@@ -450,14 +450,11 @@ body{background:var(--bg);color:var(--t1);min-height:100vh;padding-bottom:100px}
 </div>
 
 <nav class="tabbar">
-  <button class="tab active" id="tab-all" onclick="tabYearClick('all',this)">
-    <span class="tab-ic">🏠</span><span class="tab-lb">Todos</span>
+  <button class="tab active" id="tab-2025" onclick="tabYearClick('2025',this)">
+    <span class="tab-ic">📊</span><span class="tab-lb">2025</span>
   </button>
   <button class="tab" id="tab-2026" onclick="tabYearClick('2026',this)">
     <span class="tab-ic">🚀</span><span class="tab-lb">2026</span>
-  </button>
-  <button class="tab" id="tab-2025" onclick="tabYearClick('2025',this)">
-    <span class="tab-ic">📊</span><span class="tab-lb">2025</span>
   </button>
 </nav>
 
@@ -630,7 +627,7 @@ const CE = {'Bolsos':'👜','Flotadores':'🏊','Hamacas':'🪑','Sombrillas':'�
 
 let activeFilter = 'all';   // strategy/stock filter: 'all'|'act:mantener'|'act:ajustar'|'act:liquidar'|'stock:*'
 let activeCat = '';         // category filter (independent): '' or 'cat:Bolsos' etc.
-let activeYear = 'all';    // 'all' | '2025' | '2026'
+let activeYear = '2025';    // '2025' | '2026'
 let P2026 = [];
 let sortCol = null;
 let sortDir = 'asc';
