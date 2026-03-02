@@ -919,8 +919,8 @@ function render() {
     const revenue = filtered.reduce((s,p) => s + ((p.pvp||0) * (parseInt(p.cantTotal)||0)), 0);
     const totalUnits26 = filtered.reduce((s,p) => s + (parseInt(p.cantTotal)||0), 0);
     document.getElementById('potential-card').innerHTML = `<div class="pot-card" onclick="openBreakdownPopup()" style="cursor:pointer">
-      <div class="pot-lbl">Inversión total en producto</div>
-      <div class="pot-main">${fmtEur(inversion)}</div>
+      <div class="pot-lbl">Potencial total de venta</div>
+      <div class="pot-main">${fmtEur(revenue)}</div>
       <div class="pot-sub">${fmtN(totalUnits26)} unidades · ${total26} referencias</div>
     </div>`;
     document.getElementById('stats-row').innerHTML = `
