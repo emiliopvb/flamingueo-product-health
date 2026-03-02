@@ -633,11 +633,21 @@ let sortCol = null;
 let sortDir = 'asc';
 let showZeroStock = false;
 let finals = JSON.parse(localStorage.getItem('flamingueo_finals_v1')||'{}');
+const SHEET_SCRIPT_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AY5xjrRJwdTSAICiRrHjDIhgGLfyBSQmOPoaLp54FF1j2I8SK44ZxQ0XRMtDVlHeFmApWa6NUybs0UNEcGKODoq9vnw8ddwTrAxAWUkoFx7FpbPMhYHJF9Eb-blLeQkVdrAeqE5zFcSW-B1ohaIM8JdcFthdFhQtsdIvQLzS3CbF0vyT0QG0I5nt3GqAUFYS3is_AJfyRbsWYy4JWYU2FWVnTaZJyl5oyIXhT5WQR_tdLog4k1rtMt9P5vgZZpETjUBn3rM1QskUKGX3KI1PPKwKc6-WK94kLQ&lib=MpGvce3-QGb2vcNMy8HiUucmhFRCqplI1';
 function saveFinals() { localStorage.setItem('flamingueo_finals_v1', JSON.stringify(finals)); }
 function setFinal(sku, act) {
+  const prev = finals[sku];
   if (finals[sku] === act) { delete finals[sku]; } else { finals[sku] = act; }
   saveFinals();
   render();
+  // Sync to Google Sheet
+  const action = finals[sku] || '';
+  fetch(SHEET_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ sku: sku, action: action })
+  }).catch(err => console.warn('Sheet sync error:', err));
 }
 function getAction(p) { return finals[p.sku] || productAction(p); }
 
