@@ -931,8 +931,8 @@ function render() {
     document.getElementById('stats-row').innerHTML = `
       <div class="sc"><div class="sv">${total26}</div><div class="sl">Total</div></div>
       <div class="sc"><div class="sv" style="color:var(--blue)">${pvpMedio26 ? fmtEurD(pvpMedio26,2) : '—'}</div><div class="sl">PVP ponderado</div></div>
-      <div class="sc" onclick="openBreakdownPopup('inversion')" style="cursor:pointer"><div class="sv" style="color:var(--orange)">${fmtEur(inversion)}</div><div class="sl">Inversión</div></div>
-      <div class="sc" onclick="openBreakdownPopup('potencial')" style="cursor:pointer"><div class="sv" style="color:var(--green)">${fmtEur(revenue)}</div><div class="sl">Potencial</div></div>`;
+      <div class="sc" onclick="openBreakdownPopup('inversion')" style="cursor:pointer"><div class="sv" style="color:var(--orange)">${fmtK(inversion)}</div><div class="sl">Inversión</div></div>
+      <div class="sc" onclick="openBreakdownPopup('potencial')" style="cursor:pointer"><div class="sv" style="color:var(--green)">${fmtK(revenue)}</div><div class="sl">Potencial</div></div>`;
   } else {
     // 2025 or all: show potencial card and stock stats only for 2025 items
     const f25 = filtered.filter(p => p.year === '2025');
